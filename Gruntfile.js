@@ -1,11 +1,10 @@
-// Generated on 2014-08-20 using generator-jekyllrb 1.2.1
+// Generated on 2014-08-31 using generator-jekyllrb 1.2.1
 'use strict';
 
 // Directory reference:
 //   css: css
-//   sass: _scss
+//   compass: _scss
 //   javascript: js
-//   coffeescript: _src
 //   images: img
 //   fonts: fonts
 
@@ -14,7 +13,7 @@ module.exports = function (grunt) {
   require('time-grunt')(grunt);
   // Load all Grunt tasks
   require('load-grunt-tasks')(grunt);
-
+  grunt.loadNpmTasks('grunt-svgstore');
   grunt.initConfig({
     // Configurable paths
     yeoman: {
@@ -22,21 +21,17 @@ module.exports = function (grunt) {
       dist: 'dist'
     },
     watch: {
-      sass: {
+      compass: {
         files: ['<%= yeoman.app %>/_scss/**/*.{scss,sass}'],
-        tasks: ['sass:server', 'autoprefixer:server']
+        tasks: ['compass:server', 'autoprefixer:server']
+      },
+      svg: {
+        files: ['<%= yeoman.app %>/img/*.svg'],
+        tasks: ['svgstore']
       },
       autoprefixer: {
         files: ['<%= yeoman.app %>/css/**/*.css'],
         tasks: ['copy:stageCss', 'autoprefixer:server']
-      },
-      coffee: {
-        files: ['<%= yeoman.app %>/_src/**/*.coffee'],
-        tasks: ['coffee:dist']
-      },
-      coffeeTest: {
-        files: ['test/spec/**/*.coffee'],
-        tasks: ['coffee:test']
       },
       jekyll: {
         files: [
@@ -111,34 +106,31 @@ module.exports = function (grunt) {
         '.jekyll'
       ]
     },
-    sass: {
+    compass: {
       options: {
+        // If you're using global Sass gems, require them here.
+        // require: ['singularity', 'jacket'],
         bundleExec: true,
-        debugInfo: false,
-        lineNumbers: false,
-        loadPath: 'app/_bower_components'
+        sassDir: '<%= yeoman.app %>/_scss',
+        cssDir: '.tmp/css',
+        imagesDir: '<%= yeoman.app %>/img',
+        javascriptsDir: '<%= yeoman.app %>/js',
+        relativeAssets: false,
+        httpImagesPath: '/img',
+        httpGeneratedImagesPath: '/img/generated',
+        outputStyle: 'expanded',
+        raw: 'extensions_dir = "<%= yeoman.app %>/_bower_components"\n'
       },
       dist: {
-        files: [{
-          expand: true,
-          cwd: '<%= yeoman.app %>/_scss',
-          src: '**/*.{scss,sass}',
-          dest: '.tmp/css',
-          ext: '.css'
-        }]
+        options: {
+          generatedImagesDir: '<%= yeoman.dist %>/img/generated'
+        }
       },
       server: {
         options: {
           debugInfo: true,
-          lineNumbers: true
-        },
-        files: [{
-          expand: true,
-          cwd: '<%= yeoman.app %>/_scss',
-          src: '**/*.{scss,sass}',
-          dest: '.tmp/css',
-          ext: '.css'
-        }]
+          generatedImagesDir: '.tmp/img/generated'
+        }
       }
     },
     autoprefixer: {
@@ -159,26 +151,6 @@ module.exports = function (grunt) {
           cwd: '.tmp/css',
           src: '**/*.css',
           dest: '.tmp/css'
-        }]
-      }
-    },
-    coffee: {
-      dist: {
-        files: [{
-          expand: true,
-          cwd: '<%= yeoman.app %>/_src',
-          src: '**/*.coffee',
-          dest: '.tmp/js',
-          ext: '.js'
-        }]
-      },
-      test: {
-        files: [{
-          expand: true,
-          cwd: 'test/spec',
-          src: '**/*.coffee',
-          dest: '.tmp/spec',
-          ext: '.js'
         }]
       }
     },
@@ -259,6 +231,17 @@ module.exports = function (grunt) {
         }]
       }
     },
+    svgstore: {
+      options: {
+        prefix: 'shape-',
+        svg: {
+          style: "display: none;"
+        },
+        files: {
+          '<%= yeoman.app %>/img/**/*.svg': ['<%= yeoman.app %>/_includes/svg-defs.svg'],
+        }
+      }
+    },
     svgmin: {
       dist: {
         files: [{
@@ -327,14 +310,6 @@ module.exports = function (grunt) {
         }
       }
     },
-    coffeelint: {
-      options: {
-        'max_line_length': {
-          'level': 'ignore'
-        }
-      },
-      check: ['<%= yeoman.app %>/_src/*.coffee']
-    },
     jshint: {
       options: {
         jshintrc: '.jshintrc',
@@ -359,14 +334,12 @@ module.exports = function (grunt) {
     },
     concurrent: {
       server: [
-        'sass:server',
-        'coffee:dist',
+        'compass:server',
         'copy:stageCss',
         'jekyll:server'
       ],
       dist: [
-        'sass:dist',
-        'coffee:dist',
+        'compass:dist',
         'copy:dist'
       ]
     }
@@ -394,17 +367,13 @@ module.exports = function (grunt) {
 
   // No real tests yet. Add your own.
   grunt.registerTask('test', [
-  //   'clean:server',
-  //   'concurrent:test',
-  //   'connect:test'
+     'svgstore'
   ]);
 
   grunt.registerTask('check', [
     'clean:server',
     'jekyll:check',
-    'sass:server',
-    'coffeelint:check',
-    'coffee:dist',
+    'compass:server',
     'jshint:all',
     'csslint:check'
   ]);
